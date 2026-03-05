@@ -53,7 +53,8 @@ const seed = () => {
     INSERT INTO tags (name, color) VALUES (@name, @color)
   `);
 
-  tags.forEach(tag => insertTag.run(tag));
+  // Uložíme si ID vložených tagů, abychom je mohli použít níže
+  const tagIds = tags.map(tag => insertTag.run(tag).lastInsertRowid);
   console.log(`✅ Inserted ${tags.length} tags`);
 
   // 3. Vložení úkolů (issues)
@@ -104,14 +105,14 @@ const seed = () => {
   console.log(`✅ Inserted ${issues.length} issues`);
 
   // 4. Propojení tagů s úkoly
-  // const insertIssueTag = db.prepare(`
-  //   INSERT INTO issue_tags (issue_id, tag_id) VALUES (@issue_id, @tag_id)
-  // `);
+  const insertIssueTag = db.prepare(`
+    INSERT INTO issue_tags (issue_id, tag_id) VALUES (@issue_id, @tag_id)
+  `);
 
-  //insertIssueTag.run({ issue_id: 'KAN-001', tag_id: tags[0].id }); // Bug -> Nefunguje přihlášení
-  //insertIssueTag.run({ issue_id: 'KAN-001', tag_id: tags[2].id }); // Urgent -> Nefunguje přihlášení
-  //insertIssueTag.run({ issue_id: 'WEB-002', tag_id: tags[1].id }); // Feature -> Tmavý režim
-
+  // Používáme UUID úkolu (issues[x].id) a ID tagu z databáze (tagIds[x])
+  insertIssueTag.run({ issue_id: issues[0].id, tag_id: tagIds[0] }); // KAN-001 -> Tech
+  insertIssueTag.run({ issue_id: issues[0].id, tag_id: tagIds[2] }); // KAN-001 -> Interesting
+  insertIssueTag.run({ issue_id: issues[1].id, tag_id: tagIds[1] }); // WEB-002 -> Feature
 
   console.log(`✅ Linked tags to issues`);
 

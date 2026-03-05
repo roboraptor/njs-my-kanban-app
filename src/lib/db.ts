@@ -4,6 +4,19 @@ import path from 'path';
 const dbPath = path.resolve(process.cwd(), 'kanban.db');
 const db = new Database(dbPath);
 
+// Tabulka General
+db.exec(`
+  CREATE TABLE IF NOT EXISTS general (
+    id TEXT PRIMARY KEY,
+    org_name TEXT,
+    website TEXT,
+    email TEXT,
+    phone TEXT,
+    description TEXT,       
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 // Tabulka pro metadata (rychlá)
 db.exec(`
   CREATE TABLE IF NOT EXISTS issues (
@@ -16,6 +29,7 @@ db.exec(`
     assignee TEXT,
     status TEXT DEFAULT 'backlog',
     has_image INTEGER DEFAULT 0,
+    is_archived INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -60,7 +74,7 @@ db.exec(`
     issue_id TEXT,
     tag_id INTEGER,
     PRIMARY KEY (issue_id, tag_id),
-    FOREIGN KEY (issue_id) REFERENCES issues(issue_id) ON DELETE CASCADE,
+    FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
   );
 `);
