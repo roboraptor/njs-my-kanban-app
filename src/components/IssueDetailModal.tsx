@@ -1,13 +1,26 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { parseDescription } from '@/utils/textParser';
 
 interface Person { id: string; name: string; }
 interface Tag { id: string; name: string; color: string; }
 
 interface Issue {
-  id: string; title: string; description: string; ref_code: string;
+  id: string; title: string; description: string; ref_code: string; issue_id: string;
   author: string; assignee: string; status: string; has_image: number;
   tag_list: string | null;
+  tag_ids: string | null;
+}
+
+interface IssueLink {
+  id: number;
+  source_issue_id: string;
+  target_issue_id: string;
+  type: string;
+  source_readable_id: string;
+  target_readable_id: string;
+  source_title: string;
+  target_title: string;
 }
 
 export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: Issue, onClose: () => void, onSaved: () => void }) {
@@ -17,16 +30,27 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
   const [formData, setFormData] = useState({ ...issue });
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // State pro vazby
+  const [links, setLinks] = useState<IssueLink[]>([]);
+  const [allIssues, setAllIssues] = useState<Issue[]>([]); // Pro výběr v dropdownu
+  const [newLinkType, setNewLinkType] = useState('relates_to');
+  const [newLinkTargetId, setNewLinkTargetId] = useState('');
 
   useEffect(() => {
     fetch('/api/people').then(res => res.json()).then(setPeople);
     fetch('/api/tags').then(res => res.json()).then(setAllTags);
+    fetch('/api/issues').then(res => res.json()).then(setAllIssues); // Načteme všechny úkoly pro výběr vazby
+    loadLinks();
 
-    // Inicializace vybraných tagů z tag_listu (který je ve formátu "Jméno|Barva,Jméno|Barva")
-    // Poznámka: Aby toto fungovalo dokonale, musíme v DB/API porovnávat názvy, 
-    // ideálně by ale API mělo posílat i pole IDček tagů. 
-    // Pro teď to zjednodušíme - pokud uživatel klikne na tagy v editaci, přepíše ty původní.
+    if (issue.tag_ids) {
+      setSelectedTagIds(issue.tag_ids.split(','));
+    }
   }, []);
+
+  const loadLinks = () => {
+    fetch(`/api/links?issue_id=${issue.id}`).then(res => res.json()).then(setLinks);
+  };
 
   const toggleTag = (tagId: string) => {
     setSelectedTagIds(prev => 
@@ -65,13 +89,52 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
     onClose();
   };
 
+  const handleAddLink = async () => {
+    if (!newLinkTargetId) return;
+
+    // Logika pro směrovost vazeb
+    let source = issue.id;
+    let target = newLinkTargetId;
+    let type = newLinkType;
+
+    // Zpracování inverzních nebo speciálních vazeb
+    if (newLinkType === 'blocked_by') {
+      // "Tento úkol je blokován [vybraným]" => "[Vybraný] blokuje [tento]"
+      source = newLinkTargetId;
+      target = issue.id;
+      type = 'blocks';
+    } else if (newLinkType === 'child_of') {
+      // "Tento úkol je potomkem [vybraného]" => "[Vybraný] je rodičem [tohoto]"
+      source = newLinkTargetId;
+      target = issue.id;
+      type = 'parent_of';
+    } else if (newLinkType === 'parent_of') {
+      // "Tento úkol je rodičem [vybraného]"
+      type = 'parent_of';
+    }
+
+    await fetch('/api/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source_issue_id: source, target_issue_id: target, type })
+    });
+
+    setNewLinkTargetId('');
+    loadLinks();
+  };
+
+  const handleDeleteLink = async (linkId: number) => {
+    await fetch(`/api/links/${linkId}`, { method: 'DELETE' });
+    loadLinks();
+  };
+
   return (
     <div className="modal show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
       <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content border-0 shadow-lg">
           <div className="modal-header bg-light border-0">
             <h5 className="modal-title fw-bold text-muted small text-uppercase">
-              {isEditing ? 'Režim úprav' : `Detail požadavku #${issue.ref_code || issue.id.substring(0,8)}`}
+              {isEditing ? 'Režim úprav' : `Detail požadavku ${issue.issue_id || '#' + issue.id.substring(0,4)}`}
             </h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
@@ -103,7 +166,7 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
                   />
                 ) : (
                   <div className="bg-white border rounded p-3 mb-4 shadow-sm" style={{ whiteSpace: 'pre-wrap', minHeight: '150px' }}>
-                    {issue.description || <em className="text-muted">Žádný popis...</em>}
+                    {parseDescription(issue.description)}
                   </div>
                 )}
 
@@ -119,6 +182,88 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
                     />
                   </div>
                 )}
+
+                {/* SEKCE VAZBY (Issue Linking) */}
+                <div className="mb-4 pt-3 border-top">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <label className="text-uppercase small fw-bold text-muted">🔗 Vazby na jiné úkoly</label>
+                  </div>
+                  
+                  <div className="list-group list-group-flush border rounded">
+                    {/* Hierarchické vazby (Rodič/Potomek) */}
+                    {links.filter(l => l.type === 'parent_of').map(link => {
+                      const isParent = link.source_issue_id === issue.id;
+                      const label = isParent ? 'Potomek' : 'Rodič';
+                      const color = 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25';
+                      const otherIssue = isParent
+                        ? { id: link.target_readable_id, title: link.target_title }
+                        : { id: link.source_readable_id, title: link.source_title };
+                      
+                      return (
+                        <div key={link.id} className="list-group-item d-flex justify-content-between align-items-center p-2">
+                          <div>
+                            <span className={`badge ${color} me-2`}>{label}</span>
+                            <a href={`/${otherIssue.id}`} className="text-decoration-none fw-bold">{otherIssue.id}</a>
+                            <span className="text-muted ms-2 small">{otherIssue.title}</span>
+                          </div>
+                          {isEditing && <button className="btn btn-sm text-danger" onClick={() => handleDeleteLink(link.id)}><i className="bi bi-x-lg"></i></button>}
+                        </div>
+                      );
+                    })}
+
+                    {/* Ostatní vazby (Blokuje/Souvisí) */}
+                    {links.filter(l => l.type !== 'parent_of').map(link => {
+                      const isSource = link.source_issue_id === issue.id;
+                      // Určení popisku a barvy podle typu a směru
+                      let label = 'Souvisí s';
+                      let color = 'bg-info text-dark';
+                      
+                      if (link.type === 'blocks') {
+                        if (isSource) { label = 'Blokuje'; color = 'bg-danger text-white'; }
+                        else { label = 'Blokováno'; color = 'bg-warning text-dark'; }
+                      }
+
+                      const otherIssue = isSource 
+                        ? { id: link.target_readable_id, title: link.target_title }
+                        : { id: link.source_readable_id, title: link.source_title };
+
+                      return (
+                        <div key={link.id} className="list-group-item d-flex justify-content-between align-items-center p-2">
+                          <div>
+                            <span className={`badge ${color} me-2`}>{label}</span>
+                            <a href={`/${otherIssue.id}`} className="text-decoration-none fw-bold">{otherIssue.id}</a>
+                            <span className="text-muted ms-2 small">{otherIssue.title}</span>
+                          </div>
+                          {isEditing && (
+                            <button className="btn btn-sm text-danger" onClick={() => handleDeleteLink(link.id)}>
+                              <i className="bi bi-x-lg"></i>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                    {links.length === 0 && !isEditing && <div className="p-3 text-muted small text-center">Žádné vazby</div>}
+                  </div>
+
+                  {/* Formulář pro přidání vazby (jen v editaci) */}
+                  {isEditing && (
+                    <div className="mt-2 d-flex gap-2">
+                      <select className="form-select form-select-sm" style={{width: '160px'}} value={newLinkType} onChange={e => setNewLinkType(e.target.value)}>
+                        <option value="relates_to">Souvisí s</option>
+                        <option value="blocks">Blokuje</option>
+                        <option value="blocked_by">Je blokován</option>
+                        <option value="parent_of">Je rodičem</option>
+                        <option value="child_of">Je potomkem</option>
+                      </select>
+                      <select className="form-select form-select-sm" value={newLinkTargetId} onChange={e => setNewLinkTargetId(e.target.value)}>
+                        <option value="">Vyberte úkol...</option>
+                        {allIssues.filter(i => i.id !== issue.id).map(i => <option key={i.id} value={i.id}>{i.issue_id} - {i.title}</option>)}
+                      </select>
+                      <button className="btn btn-sm btn-success text-nowrap" onClick={handleAddLink}>+ Přidat</button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* PRAVÁ STRANA: Atributy */}
@@ -168,7 +313,7 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
 
                 {/* REF KÓD */}
                 <div className="mb-4">
-                  <label className="text-uppercase small fw-bold text-muted d-block mb-2">Referenční kód</label>
+                  <label className="text-uppercase small fw-bold text-muted d-block mb-2">Externí Reference</label>
                   {isEditing ? (
                     <input 
                       className="form-control border-primary" 
@@ -176,7 +321,7 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
                       onChange={e => setFormData({...formData, ref_code: e.target.value})} 
                     />
                   ) : (
-                    <code className="h6 text-primary">{issue.ref_code || '---'}</code>
+                    <span className="text-dark">{issue.ref_code || <em className="text-muted small">Nezadáno</em>}</span>
                   )}
                 </div>
 

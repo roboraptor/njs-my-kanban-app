@@ -8,6 +8,7 @@ interface Person {
   is_assignee: number;
 }
 
+interface Project { prefix: string; name: string; }
 interface Props {
   onClose: () => void;
   onSaved: () => void;
@@ -16,12 +17,14 @@ interface Props {
 export default function NewIssueModal({ onClose, onSaved }: Props) {
   const [people, setPeople] = useState<Person[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/people').then(res => res.json()).then(setPeople);
     fetch('/api/tags').then(res => res.json()).then(setAllTags);
+    fetch('/api/projects').then(res => res.json()).then(setProjects);
   }, []);
 
   const toggleTag = (id: string) => {
@@ -71,6 +74,17 @@ export default function NewIssueModal({ onClose, onSaved }: Props) {
             <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
           </div>
           <div className="modal-body p-4">
+            
+            {/* Výběr projektu */}
+            <div className="mb-3">
+              <label className="form-label fw-bold">Projekt</label>
+              <select name="project_prefix" className="form-select border-primary" required>
+                {projects.map(p => (
+                  <option key={p.prefix} value={p.prefix}>{p.prefix} - {p.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="mb-3">
               <label className="form-label fw-bold">Co je potřeba vyřešit?</label>
               <input type="text" name="title" className="form-control" placeholder="Stručný popis..." required />
@@ -105,10 +119,10 @@ export default function NewIssueModal({ onClose, onSaved }: Props) {
             </div>
 
             <div className="row">
-            <div className="col-md-12 mb-3">
+              <div className="col-md-12 mb-3">
                 <label className="form-label fw-bold">Referenční kód (např. ID zakázky)</label>
                 <input type="text" name="ref_code" className="form-control" placeholder="ABC-123..." />
-            </div>
+              </div>
             </div>
 
             <div className="mb-3">

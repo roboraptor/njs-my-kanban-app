@@ -30,11 +30,8 @@ export default function RootLayout({
             </div>
 
             <div className="navbar-nav ms-auto">
-              <a className="nav-link d-flex align-items-center gap-2" href="/people">
-                <i className="bi bi-people-fill"></i> Správa osob
-              </a>
-              <a className="nav-link d-flex align-items-center gap-2" href="/tags">
-                <i className="bi bi-tag-fill"></i> Správa tagů
+              <a className="nav-link d-flex align-items-center gap-2" href="/settings">
+                <i className="bi bi-gear-fill"></i> Nastavení
               </a>
             </div>
           </div>

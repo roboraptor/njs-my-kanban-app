@@ -14,12 +14,14 @@ export interface Issue { // Exporting for use in other components
   title: string;
   description: string;
   ref_code: string;
+  issue_id: string; // Nové pole pro Human-Readable ID (např. DEV-1)
   author: string;
   assignee: string;
   status: 'backlog' | 'waiting' | 'done';
   has_image: number;
   created_at: string;
   tag_list: string | null;
+  tag_ids: string | null;
 }
 
 const COLUMNS = [
@@ -95,6 +97,19 @@ export default function KanbanPage() {
     }
   }; // Not wrapping in useCallback as it depends on `issues` which changes often.
 
+  // Funkce pro otevření detailu a změnu URL (např. na /DEV-1)
+  const openIssueDetail = (issue: Issue) => {
+    setSelectedIssue(issue);
+    if (issue.issue_id) {
+      window.history.pushState(null, '', `/${issue.issue_id}`);
+    }
+  };
+
+  const closeIssueDetail = () => {
+    setSelectedIssue(null);
+    window.history.pushState(null, '', '/');
+  };
+
   return (
     <div className="container ">
 
@@ -109,7 +124,7 @@ export default function KanbanPage() {
       {selectedIssue && (
         <IssueDetailModal 
           issue={selectedIssue} 
-          onClose={() => setSelectedIssue(null)} 
+          onClose={closeIssueDetail} 
           onSaved={loadIssues} 
         />
       )}
@@ -137,7 +152,7 @@ export default function KanbanPage() {
                               <IssueCard
                                 issue={issue}
                                 provided={provided}
-                                onClick={() => setSelectedIssue(issue)}
+                                onClick={() => openIssueDetail(issue)}
                               />
                             )}
                           </Draggable>

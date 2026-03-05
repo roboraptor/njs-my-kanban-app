@@ -28,10 +28,16 @@ const IssueCard = React.memo(({ issue, provided, onClick }: IssueCardProps) => {
           <h6 className="fw-bold m-0">{issue.title}</h6>
           {issue.ref_code && (
             <span className="badge bg-light text-dark border small" style={{ fontSize: '0.65rem' }}>
-              #{issue.ref_code}
+              Ref: {issue.ref_code}
+            </span>
+          )}
+          {issue.issue_id && (
+            <span className="badge bg-light text-dark border small ms-2" style={{ fontSize: '0.7rem' }}>
+              {issue.issue_id}
             </span>
           )}
         </div>
+        
 
         {issue.description && (
           <p className="small text-muted mb-2 text-truncate-2">
