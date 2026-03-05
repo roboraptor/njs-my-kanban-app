@@ -1,17 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kanban App
+
+A modern Kanban application built with Next.js 16, React 19, and SQLite. This application allows you to manage tasks, projects, and team members efficiently with a local database.
+
+## Features
+
+*   **Kanban Board:** Visualize your workflow with a drag-and-drop interface (powered by `@hello-pangea/dnd`).
+*   **Issue Tracking:** Create, edit, and manage issues with detailed descriptions, tags, and assignees.
+*   **Project Management:** Organize work into projects with custom prefixes (e.g., KAN-001).
+*   **Team Management:** Manage people, assignees, and reporters.
+*   **General Settings:** Configure organization details, branding colors, and contact information via a dedicated settings page.
+*   **Local Database:** Uses SQLite (`better-sqlite3`) for fast and reliable local data storage.
+*   **Responsive Design:** Styled with Bootstrap 5.
+
+## Tech Stack
+
+*   **Framework:** Next.js (App Router)
+*   **Language:** TypeScript
+*   **Database:** SQLite (via `better-sqlite3`)
+*   **Styling:** Bootstrap 5 & Bootstrap Icons
+*   **State Management:** Zustand
+*   **Drag & Drop:** @hello-pangea/dnd
+*   **Diagrams:** React Flow
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+*   Node.js (v18 or later recommended)
+*   npm, yarn, or pnpm
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd njs-my-kanban-app
+    ```
+
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+### Database Setup
+
+Before running the application, you need to initialize the SQLite database with the schema and seed data.
+
+Run the seed script:
+
+```bash
+npx tsx scripts/seed.ts
+```
+
+This will create a `kanban.db` file in the root directory and populate it with initial data (users, projects, tags, issues, and general settings).
+
+### Running the Application
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
