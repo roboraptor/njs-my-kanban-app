@@ -10,6 +10,7 @@ interface Issue {
   author: string; assignee: string; status: string; has_image: number;
   tag_list: string | null;
   tag_ids: string | null;
+  is_archived?: number;
 }
 
 interface IssueLink {
@@ -85,6 +86,17 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
   const handleDelete = async () => {
     if (!confirm('Opravdu chcete tento úkol smazat?')) return;
     await fetch(`/api/issues/${issue.id}`, { method: 'DELETE' });
+    onSaved();
+    onClose();
+  };
+
+  const handleArchive = async () => {
+    if (!confirm('Opravdu archivovat tento úkol? Zmizí z nástěnky.')) return;
+    await fetch(`/api/issues/${issue.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_archived: 1 })
+    });
     onSaved();
     onClose();
   };
@@ -362,6 +374,11 @@ export default function IssueDetailModal({ issue, onClose, onSaved }: { issue: I
 
           <div className="modal-footer bg-light border-0">
             <button className="btn btn-outline-danger me-auto" onClick={handleDelete}>Smazat</button>
+            {!isEditing && (
+              <button className="btn btn-outline-secondary me-2" onClick={handleArchive} title="Archivovat">
+                <i className="bi bi-archive-fill me-1"></i> Archivovat
+              </button>
+            )}
             <button className="btn btn-link text-muted" onClick={onClose}>Zavřít</button>
             
             {!isEditing ? (

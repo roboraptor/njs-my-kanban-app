@@ -22,6 +22,7 @@ export interface Issue { // Exporting for use in other components
   created_at: string;
   tag_list: string | null;
   tag_ids: string | null;
+  is_archived?: number;
 }
 
 const COLUMNS = [

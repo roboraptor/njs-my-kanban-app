@@ -34,7 +34,13 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ success: true, message: 'Úkol byl kompletně aktualizován' });
     } 
     
-    // 2. SCÉNÁŘ: Rychlá změna stavu (Drag & Drop)
+    // 2. SCÉNÁŘ: Archivace
+    else if (body.is_archived !== undefined) {
+      db.prepare('UPDATE issues SET is_archived = ? WHERE id = ?').run(body.is_archived, id);
+      return NextResponse.json({ success: true, message: 'Stav archivace změněn' });
+    }
+
+    // 3. SCÉNÁŘ: Rychlá změna stavu (Drag & Drop)
     else {
       const { status } = body;
       const allowedStatuses = ['backlog', 'waiting', 'done'];

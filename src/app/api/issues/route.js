@@ -9,8 +9,16 @@ try {
   // Sloupec pravděpodobně již existuje
 }
 
-export async function GET() {
+// Migrace: Přidání sloupce is_archived, pokud neexistuje
+try {
+  db.prepare("ALTER TABLE issues ADD COLUMN is_archived INTEGER DEFAULT 0").run();
+} catch (e) {}
+
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const showArchived = searchParams.get('archived') === 'true' ? 1 : 0;
+
     // KLÍČOVÁ ZMĚNA: Používáme poddotaz pro získání tagů ve formátu "Jméno|Barva"
     const issues = db.prepare(`
       SELECT i.*, 
@@ -22,8 +30,9 @@ export async function GET() {
          FROM issue_tags 
          WHERE issue_id = i.id) as tag_ids
       FROM issues i 
+      WHERE i.is_archived = ?
       ORDER BY i.created_at DESC
-    `).all();
+    `).all(showArchived);
     
     return NextResponse.json(issues || []);
   } catch (error) {
