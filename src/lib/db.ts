@@ -8,9 +8,10 @@ const db = new Database(dbPath);
 db.exec(`
   CREATE TABLE IF NOT EXISTS issues (
     id TEXT PRIMARY KEY,
+    issue_id TEXT,
     title TEXT NOT NULL,
-    description TEXT,       -- Nové pole pro detailní popis
-    ref_code TEXT,          -- Nové pole pro referenční kód
+    description TEXT,       
+    ref_code TEXT,          
     author TEXT,
     assignee TEXT,
     status TEXT DEFAULT 'backlog',
@@ -18,6 +19,16 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      prefix TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      counter INTEGER DEFAULT 0
+    )
+`);
+
 
 // Tabulka pro binární data (těžká)
 db.exec(`
@@ -40,16 +51,16 @@ db.exec(`
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tags (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     color TEXT DEFAULT '#6c757d' -- Výchozí šedá
   );
 
   CREATE TABLE IF NOT EXISTS issue_tags (
     issue_id TEXT,
-    tag_id TEXT,
+    tag_id INTEGER,
     PRIMARY KEY (issue_id, tag_id),
-    FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE,
+    FOREIGN KEY (issue_id) REFERENCES issues(issue_id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
   );
 `);

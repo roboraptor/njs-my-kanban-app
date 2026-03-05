@@ -19,8 +19,8 @@ export async function POST(request) {
     const { name, color } = await request.json();
     const id = uuidv4();
 
-    db.prepare('INSERT INTO tags (id, name, color) VALUES (?, ?, ?)')
-      .run(id, name, color || '#6c757d');
+    db.prepare('INSERT INTO tags (name, color) VALUES ( ?, ?)')
+      .run(name, color || '#6c757d');
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
