@@ -9,7 +9,10 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS general (
     id TEXT PRIMARY KEY,
     org_name TEXT,
+    header_org_name TEXT,
+    color TEXT DEFAULT '#0074da',
     website TEXT,
+    logo_url TEXT,
     email TEXT,
     phone TEXT,
     description TEXT,       
@@ -67,7 +70,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    color TEXT DEFAULT '#6c757d' -- Výchozí šedá
+    color TEXT DEFAULT '#59a8ec'
   );
 
   CREATE TABLE IF NOT EXISTS issue_tags (

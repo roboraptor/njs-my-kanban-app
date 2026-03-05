@@ -9,6 +9,7 @@ const seed = () => {
   db.prepare('DELETE FROM issue_tags').run();
   db.prepare('DELETE FROM attachments').run();
   db.prepare('DELETE FROM projects').run();
+  db.prepare('DELETE FROM general').run();
   db.prepare('DELETE FROM issues').run();
   db.prepare('DELETE FROM people').run();
   db.prepare('DELETE FROM tags').run();
@@ -115,6 +116,27 @@ const seed = () => {
   insertIssueTag.run({ issue_id: issues[1].id, tag_id: tagIds[1] }); // WEB-002 -> Feature
 
   console.log(`✅ Linked tags to issues`);
+
+  // 5. Vložení informací o organizaci (General)
+  const generalData = {
+    id: crypto.randomUUID(),
+    org_name: 'Moje Firma s.r.o.',
+    header_org_name: 'Moje Firma',
+    color: '#0074da',
+    website: 'https://example.com',
+    logo_url: 'https://placehold.co/150x50',
+    email: 'info@example.com',
+    phone: '+420 123 456 789',
+    description: 'Jsme inovativní společnost zaměřená na efektivní řízení projektů.',
+  };
+
+  const insertGeneral = db.prepare(`
+    INSERT INTO general (id, org_name, header_org_name, color, website, logo_url, email, phone, description)
+    VALUES (@id, @org_name, @header_org_name, @color, @website, @logo_url, @email, @phone, @description)
+  `);
+
+  insertGeneral.run(generalData);
+  console.log(`✅ Inserted general organization info`);
 
   console.log('🚀 Database seeded successfully!');
 };
