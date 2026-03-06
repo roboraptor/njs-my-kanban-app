@@ -38,7 +38,7 @@ export default function ProjectSettings() {
 
   return (
     <div>
-      <h4 className="mb-3">Správa projektů (Prefixy)</h4>
+      <h4 className="mb-3"><i className="bi bi-kanban-fill"></i> Správa projektů (Prefixy)</h4>
       
       <form onSubmit={addProject} className="row g-2 mb-4 align-items-end">
         <div className="col-auto">

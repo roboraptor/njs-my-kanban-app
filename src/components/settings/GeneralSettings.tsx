@@ -59,7 +59,7 @@ export default function GeneralSettings() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <h4 className="mb-3">Obecné nastavení</h4>
+      <h4 className="mb-3"><i className="bi bi-gear-fill"></i> Obecné nastavení</h4>
       
       <div className="row">
         <div className="col-md-6 mb-3">
