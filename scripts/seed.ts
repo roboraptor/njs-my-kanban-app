@@ -119,7 +119,6 @@ const seed = () => {
 
   // 5. Vložení informací o organizaci (General)
   const generalData = {
-    id: crypto.randomUUID(),
     org_name: 'Moje Firma s.r.o.',
     header_org_name: 'Moje Firma',
     color: '#0074da',
@@ -131,8 +130,8 @@ const seed = () => {
   };
 
   const insertGeneral = db.prepare(`
-    INSERT INTO general (id, org_name, header_org_name, color, website, logo_url, email, phone, description)
-    VALUES (@id, @org_name, @header_org_name, @color, @website, @logo_url, @email, @phone, @description)
+    INSERT INTO general (org_name, header_org_name, color, website, logo_url, email, phone, description)
+    VALUES (@org_name, @header_org_name, @color, @website, @logo_url, @email, @phone, @description)
   `);
 
   insertGeneral.run(generalData);

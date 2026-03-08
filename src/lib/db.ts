@@ -7,7 +7,7 @@ const db = new Database(dbPath);
 // Tabulka General
 db.exec(`
   CREATE TABLE IF NOT EXISTS general (
-    id TEXT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     org_name TEXT,
     header_org_name TEXT,
     color TEXT DEFAULT '#0074da',
