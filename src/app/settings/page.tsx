@@ -6,6 +6,7 @@ import GeneralSettings from '@/components/settings/GeneralSettings';
 import ProjectSettings from '@/components/settings/ProjectSettings';
 import PeopleSettings from '@/components/settings/PeopleSettings';
 import TagsSettings from '@/components/settings/TagsSettings';
+import SourceSettings from '@/components/settings/SourceSettings';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
@@ -47,6 +48,12 @@ export default function SettingsPage() {
             >
               🏷️ Tagy
             </button>
+            <button 
+              className={`list-group-item list-group-item-action ${activeTab === 'source' ? 'active' : ''}`}
+              onClick={() => setActiveTab('source')}
+            >
+              🗃️ Zdroj dat
+            </button>
           </div>
         </div>
 
@@ -59,6 +66,7 @@ export default function SettingsPage() {
               {activeTab === 'people' && <PeopleSettings />}
 
               {activeTab === 'tags' && <TagsSettings />}
+              {activeTab === 'source' && <SourceSettings />}
 
             </div>
           </div>

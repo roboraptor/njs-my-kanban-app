@@ -1,7 +1,22 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
-const dbPath = path.resolve(process.cwd(), 'kanban.db');
+const configPath = path.resolve(process.cwd(), 'path-config.json');
+let dbPath = path.resolve(process.cwd(), 'kanban.db');
+
+// Pokus o načtení konfigurace
+try {
+  if (fs.existsSync(configPath)) {
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    if (config.dbPath) {
+      dbPath = config.dbPath;
+    }
+  }
+} catch (error) {
+  console.error('Nepodařilo se načíst konfiguraci DB, používám výchozí:', error);
+}
+
 const db = new Database(dbPath);
 
 // Tabulka General
