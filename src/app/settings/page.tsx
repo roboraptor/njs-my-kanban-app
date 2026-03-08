@@ -1,6 +1,7 @@
 // src/app/settings/page.tsx
 'use client';
 import React, { useState } from 'react';
+import Link from 'next/link';
 import GeneralSettings from '@/components/settings/GeneralSettings';
 import ProjectSettings from '@/components/settings/ProjectSettings';
 import PeopleSettings from '@/components/settings/PeopleSettings';
@@ -11,7 +12,13 @@ export default function SettingsPage() {
 
   return (
     <div className="container py-4">
-      <h1 className="mb-4 fw-bold">⚙️ Nastavení aplikace</h1>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="fw-bold">⚙️ Nastavení aplikace</h1>
+        <Link href="/" className="btn btn-outline-primary">
+          <i className="bi bi-arrow-left"></i> Zpět na nástěnku
+        </Link>
+      </div>
+      
 
       <div className="row">
         <div className="col-md-3">
