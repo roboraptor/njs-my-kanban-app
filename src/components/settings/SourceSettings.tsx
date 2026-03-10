@@ -76,12 +76,10 @@ export default function SourceSettings() {
   if (loading) return <div>Načítání nastavení...</div>;
 
   return (
-    <div className="card shadow-sm mt-4">
-      <div className="card-header bg-light">
-        <h5 className="mb-0"><i className="bi bi-database-gear"></i> Zdroj dat</h5>
-      </div>
-      <div className="card-body">
-        <form onSubmit={handleSave}>
+    <div>
+      <h4 className="mb-3"><i className="bi bi-database-gear"></i> Zdroj dat</h4>
+      <div >
+        <form onSubmit={handleSave} >
           <div className="mb-3">
             <label htmlFor="dbPathInput" className="form-label fw-bold">Cesta k souboru databáze (SQLite)</label>
             <input 
